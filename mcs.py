@@ -79,8 +79,10 @@ forecast_cols = ['Date',]
 for i in range(samples):
     forecast_cols.append('sample_{}'.format(i))
 forecast = pd.DataFrame(columns=forecast_cols)
-forecast['Date'] = [d['Date'].iloc[-1] 
-                    + i*timedelta(days=1) for i in range(n+1)]
+# forecast datetime spacing based on historical data assuming even distribution
+timerange = d['Date'].iloc[-1] - d['Date'].iloc[0]
+timespacing = timerange / len(d)
+forecast['Date'] = [d['Date'].iloc[-1] + i*timespacing for i in range(n+1)]
 
 
 ### make forecast
@@ -92,7 +94,7 @@ for i in tqdm(range(samples)):
     run = np.zeros(n+1)
     run[0] = latest
     # perform prediction run
-    for j in range(n):
+    for j in tqdm(range(n), leave=False):
         run[j+1] = run[j] * (1 + d['change'].iloc[draw[j]])
     # store results in forecast dataframe
     forecast['sample_{}'.format(i)] = run
